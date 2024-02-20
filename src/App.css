@@ -65,9 +65,12 @@ button:focus-visible {
   margin: 15px auto;
   border-radius: 5px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  color: black;
+  background-color: #448800;
+  color: #ffffff;
   max-width: 300px;
+}
+.unmatched {
+  background: #aa0202;
 }
 
 .available {

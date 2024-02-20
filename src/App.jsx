@@ -10,8 +10,7 @@ import bikeIcon from "./assets/bike.png";
 import rekolaGPN from "./assets/rekolaData.json";
 
 const apiEndpoint =
-  "https://uc1.umotional.net/urbancyclers-api/v7/bikeSharingInfo?lat=50.10582713983123&lon=14.437065124511719&radius=10000";
-
+  "https://uc1.umotional.net/urbancyclers-api/v7/bikeSharingInfo?lat=50.0755&lon=14.4378&radius=20000";
 export default function App() {
   const [data, setData] = useState([]);
 
@@ -30,16 +29,18 @@ export default function App() {
         iconAnchor: [10, 10],
       });
 
-      const markers = data.map((vehicle) => {
-        const lat = vehicle.data.lat;
-        const lon = vehicle.data.lon;
-        const vehicleName = vehicle.data.vehicleName;
-        const pametnik = vehicle.pametnik;
+      const markers = data
+        .filter((vehicle) => vehicle.matched === true)
+        .map((matchedVehicle) => {
+          const lat = matchedVehicle.data.lat;
+          const lon = matchedVehicle.data.lon;
+          const vehicleName = matchedVehicle.data.vehicleName;
+          const pametnik = matchedVehicle.pametnik;
 
-        return L.marker([lat, lon], {
-          icon: icon,
-        }).bindPopup(pametnik + " - " + vehicleName);
-      });
+          return L.marker([lat, lon], {
+            icon: icon,
+          }).bindPopup(pametnik + " - " + vehicleName);
+        });
 
       ciLayer.addLayers(markers);
     }, [map, data]);
@@ -84,7 +85,9 @@ export default function App() {
               const match = newData.find(
                 (anotherItem) => item.bikeID === anotherItem.vehicleId
               );
-              return match ? { ...item, data: match } : null;
+              return match
+                ? { ...item, data: match, matched: true }
+                : { ...item, matched: false };
             })
             .filter((match) => match !== null);
 
@@ -120,19 +123,22 @@ export default function App() {
         </MapContainer>
       </div>
       <div className="available">
-        Aktuálně dostupná rekola: {data.length} / {rekolaGPN.length}
+        Aktuálně dostupná rekola: {data.filter((item) => item.matched).length} /{" "}
+        {rekolaGPN.length}
       </div>
       <div className="tileWrapper">
         {data.map((item, index) => (
           <div key={index}>
             <Tile
+              classData={item.matched ? "tile" : "tile unmatched"}
               pametnik={item.pametnik}
               bikeNumber={item.bikeNumber}
-              bikeName={item.data.vehicleName}
+              bikeName={item.matched ? item.data.vehicleName : "-"}
             />
           </div>
         ))}
       </div>
+
       <footer>
         Poslední aktualizace: {new Date().toLocaleString()} | Zdroj dat -{" "}
         <a

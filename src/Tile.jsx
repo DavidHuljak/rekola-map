@@ -1,6 +1,6 @@
-function Tile({ pametnik, bikeNumber, bikeName }) {
+function Tile({ pametnik, bikeNumber, bikeName, classData }) {
   return (
-    <div className="tile">
+    <div className={classData}>
       <div className="prop">
         <span className="prop-label">Pamětník:</span> {pametnik}
       </div>
