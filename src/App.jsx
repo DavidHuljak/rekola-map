@@ -71,7 +71,7 @@ export default function App() {
               newData.push({
                 lat: coordinates[1],
                 lon: coordinates[0],
-                vehicleName: vehicleName !== "" ? vehicleName : "Nepojmenované",
+                vehicleName: vehicleName !== "" ? vehicleName : "-",
                 vehicleId: vehicleId,
                 providerId: providerId,
               });
