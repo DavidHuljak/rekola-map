@@ -50,13 +50,23 @@
     "bikeID": "7695"
   },
   {
-    "pametnik": "George Agathonikiadis",
+    "pametnik": "Slávka Altmanová",
     "bikeNumber": "625753",
     "bikeID": "6257"
+  },
+  {
+    "pametnik": "George Agathonikiadis",
+    "bikeNumber": "310698",
+    "bikeID": "3106"
   },
   {
     "pametnik": "Pěvuše Kohoutová",
     "bikeNumber": "282010",
     "bikeID": "2820"
+  },
+  {
+    "pametnik": "Kazimír Morozovič",
+    "bikeNumber": "563518",
+    "bikeID": "5635"
   }
 ]
