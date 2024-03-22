@@ -24,6 +24,13 @@
   height: 100%;
 }
 
+.tileWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
@@ -67,7 +74,8 @@ button:focus-visible {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   background-color: #448800;
   color: #ffffff;
-  max-width: 300px;
+  max-width: 250px;
+  min-width: 250px;
 }
 .unmatched {
   background: #aa0202;
