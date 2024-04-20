@@ -4,15 +4,21 @@ import { useMap } from "react-leaflet";
 import axios from "axios";
 import "leaflet-canvas-marker";
 import L from "leaflet";
-import "./App.css";
-import Tile from "./Tile";
 import bikeIcon from "./assets/bike.png";
-import rekolaGPN from "./assets/rekolaData.json";
 
-const apiEndpoint =
-  "https://uc1.umotional.net/urbancyclers-api/v7/bikeSharingInfo?lat=50.0755&lon=14.4378&radius=20000";
-export default function App() {
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+
+import Button from "@mui/material/Button";
+import { Link, Paper } from "@mui/material";
+
+const App = () => {
   const [data, setData] = useState([]);
+  const [schoolBikes, setSchoolBikes] = useState([]);
 
   const LeafletCanvasMarker = ({ data }) => {
     const map = useMap();
@@ -25,7 +31,7 @@ export default function App() {
 
       const icon = L.icon({
         iconUrl: bikeIcon,
-        iconSize: [42, 34],
+        iconSize: [40, 40],
         iconAnchor: [10, 10],
       });
 
@@ -51,38 +57,18 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    axios
-      .get(apiEndpoint)
-      .then((response) => {
-        const features = response.data.features;
-        const newData = [];
-
-        features.forEach((feature) => {
-          const coordinates = feature.geometry.coordinates;
-          const freeVehicles = feature.properties.freeVehicles;
-          const providerId = feature.properties.providerId;
-
-          if (providerId !== "REKOLA") return;
-          if (Array.isArray(freeVehicles)) {
-            freeVehicles.forEach((vehicle) => {
-              const vehicleName = vehicle.vehicleName;
-              const vehicleId = vehicle.vehicleId;
-
-              newData.push({
-                lat: coordinates[1],
-                lon: coordinates[0],
-                vehicleName: vehicleName !== "" ? vehicleName : "-",
-                vehicleId: vehicleId,
-                providerId: providerId,
-              });
-            });
-          }
-        });
-
+    Promise.all([
+      axios.get("https://api.huljak.cz/bikes/schoolRekola"),
+      axios.get("https://api.huljak.cz/bikes/rekola"),
+    ])
+      .then(([schoolResponse, response]) => {
         if (isMounted) {
-          const matchedObjects = rekolaGPN
+          const schoolBikesData = schoolResponse.data;
+          setSchoolBikes(schoolBikesData);
+
+          const matchedObjects = schoolBikesData
             .map((item) => {
-              const match = newData.find(
+              const match = response.data.find(
                 (anotherItem) => item.bikeID === anotherItem.vehicleId
               );
               return match
@@ -103,52 +89,96 @@ export default function App() {
     };
   }, []);
 
-  console.log(data);
-
   return (
-    <>
-      <h1>Pamětníci na rekolech</h1>
-      <div className="mapWrapper">
-        <MapContainer
-          center={[50.08688641405796, 14.435691833496096]}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-          className="mapContainer"
-        >
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
-          />
-          <LeafletCanvasMarker data={data} />
-        </MapContainer>
-      </div>
-      <div className="available">
-        Aktuálně dostupná rekola: {data.filter((item) => item.matched).length} /{" "}
-        {rekolaGPN.length}
-      </div>
-      <div className="tileWrapper">
-        {data.map((item, index) => (
-          <div key={index}>
-            <Tile
-              classData={item.matched ? "tile" : "tile unmatched"}
-              pametnik={item.pametnik}
-              bikeNumber={item.bikeNumber}
-              bikeName={item.matched ? item.data.vehicleName : "-"}
-            />
-          </div>
-        ))}
-      </div>
+    <Box>
+      <AppBar component="nav">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Pamětníci na rekolech
+          </Typography>
+          <Box>
+            <Button
+              sx={{ color: "#fff" }}
+              href="https://rekola.gympn.cz"
+              target="_blank"
+            >
+              Informace
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+      <Box component="main" sx={{ p: 3 }}>
+        <Toolbar />
+        <Paper variant="outlined">
+          <Box sx={{ width: "90%", height: "70vh", margin: "1rem auto" }}>
+            <MapContainer
+              center={[50.08688641405796, 14.435691833496096]}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+              className="mapContainer"
+            >
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
+              />
+              <LeafletCanvasMarker data={data} />
+            </MapContainer>
+          </Box>
+          <Typography variant="h4" sx={{ textAlign: "center", p: 2 }}>
+            Aktuálně dostupná rekola:{" "}
+            {data.filter((item) => item.matched).length} / {schoolBikes.length}
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            {data.map((item, index) => (
+              <Card
+                sx={{
+                  m: 1.5,
+                  minWidth: "250px",
+                  maxWidth: "250px",
+                  backgroundColor: item.matched ? "success.main" : "error.main",
+                  color: item.matched ? "#fff" : "#fff",
+                }}
+                key={index}
+                color="primary"
+              >
+                <CardContent>
+                  <Typography sx={{ fontSize: 14 }} gutterBottom>
+                    {item.bikeNumber}
+                  </Typography>
+                  <Typography variant="h5" component="div">
+                    {item.pametnik}
+                  </Typography>
+                  <Typography variant="h6">
+                    {item.matched ? item.data.vehicleName : "-"}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
 
-      <footer>
-        Poslední aktualizace: {new Date().toLocaleString()} | Zdroj dat -{" "}
-        <a
-          href="https://umotional.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          umotional.com
-        </a>
-      </footer>
-    </>
+          <Typography variant="body1" sx={{ mt: 2, textAlign: "center" }}>
+            Poslední aktualizace: {new Date().toLocaleString()}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
+            Zdroj dat -{" "}
+            <Link
+              href="https://umotional.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              umotional.com
+            </Link>
+          </Typography>
+        </Paper>
+      </Box>
+    </Box>
   );
-}
+};
+
+export default App;
