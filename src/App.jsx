@@ -14,9 +14,10 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 
 import Button from "@mui/material/Button";
-import { Link, Paper } from "@mui/material";
+import { CircularProgress, Link, Paper, Stack } from "@mui/material";
 
 const App = () => {
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
   const [schoolBikes, setSchoolBikes] = useState([]);
 
@@ -58,12 +59,12 @@ const App = () => {
     let isMounted = true;
 
     Promise.all([
-      axios.get("https://api.huljak.cz/bikes/schoolRekola"),
       axios.get("https://api.huljak.cz/bikes/rekola"),
+      axios.get("https://api.huljak.cz/school/historical-rekola"),
     ])
-      .then(([schoolResponse, response]) => {
+      .then(([response, historical]) => {
         if (isMounted) {
-          const schoolBikesData = schoolResponse.data;
+          const schoolBikesData = historical.data;
           setSchoolBikes(schoolBikesData);
 
           const matchedObjects = schoolBikesData
@@ -78,6 +79,7 @@ const App = () => {
             .filter((match) => match !== null);
 
           setData((prev) => [...prev, ...matchedObjects]);
+          setLoading(false);
         }
       })
       .catch((error) => {
@@ -107,63 +109,77 @@ const App = () => {
           </Box>
         </Toolbar>
       </AppBar>
+
       <Box component="main" sx={{ p: 3 }}>
         <Toolbar />
+
         <Paper variant="outlined">
-          <Box sx={{ width: "90%", height: "70vh", margin: "1rem auto" }}>
-            <MapContainer
-              center={[50.08688641405796, 14.435691833496096]}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-              className="mapContainer"
-            >
-              <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
-              />
-              <LeafletCanvasMarker data={data} />
-            </MapContainer>
-          </Box>
-          <Typography variant="h4" sx={{ textAlign: "center", p: 2 }}>
-            Aktuálně dostupná rekola:{" "}
-            {data.filter((item) => item.matched).length} / {schoolBikes.length}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
-            {data.map((item, index) => (
-              <Card
+          {loading ? (
+            <Stack alignItems="center">
+              <CircularProgress sx={{ m: 5 }} size={100} />
+            </Stack>
+          ) : (
+            <>
+              <Box sx={{ width: "90%", height: "70vh", margin: "1rem auto" }}>
+                <MapContainer
+                  center={[50.08688641405796, 14.435691833496096]}
+                  zoom={13}
+                  style={{ height: "100%", width: "100%" }}
+                  className="mapContainer"
+                >
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> and &copy; <a href='https://carto.com/attributions'>CARTO</a>"
+                  />
+                  <LeafletCanvasMarker data={data} />
+                </MapContainer>
+              </Box>
+
+              <Typography variant="h4" sx={{ textAlign: "center", p: 2 }}>
+                Aktuálně dostupná rekola:{" "}
+                {data.filter((item) => item.matched).length} /{" "}
+                {schoolBikes.length}
+              </Typography>
+              <Box
                 sx={{
-                  m: 1.5,
-                  minWidth: "250px",
-                  maxWidth: "250px",
-                  backgroundColor: item.matched ? "success.main" : "error.main",
-                  color: item.matched ? "#fff" : "#fff",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
                 }}
-                key={index}
-                color="primary"
               >
-                <CardContent>
-                  <Typography sx={{ fontSize: 14 }} gutterBottom>
-                    {item.bikeNumber}
-                  </Typography>
-                  <Typography variant="h5" component="div">
-                    {item.pametnik}
-                  </Typography>
-                  <Typography variant="h6">
-                    {item.matched ? item.data.vehicleName : "-"}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
+                {data.map((item, index) => (
+                  <Card
+                    sx={{
+                      m: 1.5,
+                      minWidth: "250px",
+                      maxWidth: "250px",
+                      backgroundColor: item.matched
+                        ? "success.main"
+                        : "error.main",
+                      color: item.matched ? "#fff" : "#fff",
+                    }}
+                    key={index}
+                    color="primary"
+                  >
+                    <CardContent>
+                      <Typography sx={{ fontSize: 14 }} gutterBottom>
+                        {item.bikeNumber}
+                      </Typography>
+                      <Typography variant="h5" component="div">
+                        {item.pametnik}
+                      </Typography>
+                      <Typography variant="h6">
+                        {item.matched ? item.data.vehicleName : "-"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </>
+          )}
 
           <Typography variant="body1" sx={{ mt: 2, textAlign: "center" }}>
-            Poslední aktualizace: {new Date().toLocaleString()}
+            Aktualizováno: {new Date().toLocaleString().slice(0, -3)}
           </Typography>
           <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
             Zdroj dat -{" "}
