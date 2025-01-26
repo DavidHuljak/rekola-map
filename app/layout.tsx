@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Rekola Paměť národa",
-  description: "Mapa a seznam pamětníků projektu Rekola Paměť národa",
+  title: "Pamětníci na rekolech",
+  description: "Mapa a seznam pamětníků projektu Pamětníci na rekolech",
 };
 
 export default function RootLayout({
