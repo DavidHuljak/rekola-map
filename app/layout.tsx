@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pamětníci na rekolech",
+  title: "Mapa - Pamětníci na rekolech",
   description: "Mapa a seznam pamětníků projektu Pamětníci na rekolech",
 };
 

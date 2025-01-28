@@ -40,9 +40,9 @@ export default function Home() {
         setBikes(rekolaResponse.data);
         setLastUpdate(new Date().toLocaleString("cs-CZ").slice(0, -3));
 
-        if (!map.current) {
+        if (mapContainer.current && !map.current) {
           map.current = new mapboxgl.Map({
-            container: mapContainer.current!,
+            container: mapContainer.current,
             style: "mapbox://styles/mapbox/light-v10",
             center: [14.4378, 50.0755],
             zoom: 11,
@@ -50,15 +50,13 @@ export default function Home() {
 
           map.current.addControl(new mapboxgl.NavigationControl());
 
-          const matchedBikes = rekolaResponse.data.filter((bike: Bike) =>
-            pametnikResponse.data.some(
-              (pametnik: Pametnik) => pametnik.bikeID === bike.vehicleId
-            )
-          );
-
-          console.log(matchedBikes);
-
           map.current.on("load", () => {
+            const matchedBikes = rekolaResponse.data.filter((bike: Bike) =>
+              pametnikResponse.data.some(
+                (pametnik: Pametnik) => pametnik.bikeID === bike.vehicleId
+              )
+            );
+
             matchedBikes.forEach((bike: Bike) => {
               const matchedPametnik = pametnikResponse.data.find(
                 (pametnik: Pametnik) => pametnik.bikeID === bike.vehicleId
@@ -85,7 +83,9 @@ export default function Home() {
       }
     };
 
-    fetchData();
+    if (mapContainer.current) {
+      fetchData();
+    }
   }, []);
 
   const sortedPametnici = [...pametnici].sort((a, b) => {
@@ -99,7 +99,7 @@ export default function Home() {
   return (
     <div className="app">
       <header>
-        <h1>Pamětníci na rekolech</h1>
+        <h1>Mapa - Pamětníci na rekolech</h1>
         <a
           href="https://rekola.gympn.cz"
           target="_blank"
